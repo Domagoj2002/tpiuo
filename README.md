@@ -1,4 +1,4 @@
 # tpiuo
 - Ime: Domagoj
-- Prezime: Sviličić
+- Prezime: Svilicić
 - Email: ds54022@fer.hr
