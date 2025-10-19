@@ -1,2 +1,4 @@
 # tpiuo
-Repozitorij za vještinu Tehnologije podatkovnog inženjerstva u oblaku
+- Ime: Domagoj
+- Prezime: Sviličić
+- Email: ds54022@fer.hr
