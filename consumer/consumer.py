@@ -1,123 +1,77 @@
-""" import base64
-import json
-from flask import Flask, request
-
-app = Flask(__name__)
-
-@app.route("/", methods=["POST"])
-def receive_message():
-    envelope = request.get_json()
-
-    # Logiraj cijeli envelope da vidiš što Pub/Sub šalje
-    print("=== RAW ENVELOPE ===")
-    print(envelope)
-
-    if not envelope or "message" not in envelope:
-        print("Envelope missing 'message' field")
-        return "Bad Request", 400
-
-    msg = envelope["message"]
-    data = msg.get("data")
-
-    if not data:
-        print("Message received, but no 'data' field present")
-        return "OK", 200
-
-    try:
-        decoded = base64.b64decode(data).decode("utf-8")
-        print("=== DECODED DATA ===")
-        print(decoded)
-
-        post = json.loads(decoded)
-        print(f"Received post {post['id']} - {post['title']}")
-
-    except Exception as e:
-        print("Error decoding or parsing message:", e)
-
-    return "OK", 200
-
-@app.route("/listening")
-def listening():
-    return "Consumer is running", 200
-
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8080)
- """
 import base64
 import json
-import uuid
-from flask import Flask, request, render_template_string
-from google.cloud import storage
+import io
+from flask import Flask, request
+from fastavro import parse_schema, schemaless_reader
+from google.cloud import storage, bigquery
+import pandas as pd
+from datetime import datetime
 
 app = Flask(__name__)
 
-received_posts = []
+# Učitaj AVRO schemu
+with open("reddit_schema.avsc", "r") as f:
+    avro_schema = parse_schema(json.load(f))
 
-# Inicijaliziraj Cloud Storage klijenta
+# GCS
 storage_client = storage.Client()
-BUCKET_NAME = "jsonplaceholder-messages-domagoj"
+BUCKET = "jsonplaceholder-messages-domagoj"
 
-def save_to_bucket(post):
-    bucket = storage_client.bucket(BUCKET_NAME)
-    blob = bucket.blob(f"post-{post['id']}-{uuid.uuid4()}.json")
-    blob.upload_from_string(json.dumps(post), content_type="application/json")
-    print(f"Saved post {post['id']} to Cloud Storage")
+# BigQuery
+bq_client = bigquery.Client()
+TABLE_ID = "student-0036540224-project.reddit_pipeline.reddit_messages"
 
+def decode_avro(avro_bytes):
+    buffer = io.BytesIO(avro_bytes)
+    return schemaless_reader(buffer, avro_schema)
 
-@app.route("/", methods=["GET"])
-def home():
-    html = """
-    <h1>Consumer Dashboard</h1>
-    <p>Primljene Pub/Sub poruke:</p>
-    <ul>
-    {% for post in posts %}
-        <li><strong>{{ post.id }}</strong>: {{ post.title }}</li>
-    {% else %}
-        <li><em>Još nema poruka...</em></li>
-    {% endfor %}
-    </ul>
-    """
-    return render_template_string(html, posts=received_posts)
+def save_json_to_gcs(record):
+    ts = datetime.utcnow()
+    path = f"json/year={ts.year}/month={ts.month}/day={ts.day}/post-{record['id']}.json"
+    bucket = storage_client.bucket(BUCKET)
+    blob = bucket.blob(path)
+    blob.upload_from_string(json.dumps(record), content_type="application/json")
+    print("Saved JSON:", path)
+    return path
 
+def save_parquet_to_gcs(record):
+    df = pd.DataFrame([record])
+    ts = datetime.utcnow()
+    path = f"parquet/year={ts.year}/month={ts.month}/day={ts.day}/hour={ts.hour}/part-{record['id']}.parquet"
+    bucket = storage_client.bucket(BUCKET)
+    blob = bucket.blob(path)
+
+    buffer = io.BytesIO()
+    df.to_parquet(buffer, index=False)
+    blob.upload_from_string(buffer.getvalue(), content_type="application/octet-stream")
+
+    print("Saved Parquet:", path)
+    return f"gs://{BUCKET}/{path}"
+
+def load_to_bigquery(gcs_uri):
+    job_config = bigquery.LoadJobConfig(
+        source_format=bigquery.SourceFormat.PARQUET,
+        write_disposition=bigquery.WriteDisposition.WRITE_APPEND,
+    )
+    load_job = bq_client.load_table_from_uri(gcs_uri, TABLE_ID, job_config=job_config)
+    load_job.result()
+    print("Loaded into BigQuery:", gcs_uri)
 
 @app.route("/", methods=["POST"])
-def receive_message():
+def receive():
     envelope = request.get_json()
-    print("=== RAW ENVELOPE ===")
-    print(envelope)
-
-    if not envelope or "message" not in envelope:
-        return "Bad Request", 400
-
     msg = envelope["message"]
-    data = msg.get("data")
+    data = base64.b64decode(msg["data"])
 
-    if not data:
-        return "OK", 200
+    record = decode_avro(data)
+    print("Decoded AVRO:", record)
 
-    try:
-        decoded = base64.b64decode(data).decode("utf-8")
-        post = json.loads(decoded)
-
-        print(f"Received post {post['id']} - {post['title']}")
-
-        # Spremi u memoriju
-        received_posts.append(post)
-
-        # Spremi u Cloud Storage
-        save_to_bucket(post)
-
-    except Exception as e:
-        print("Error decoding or parsing message:", e)
+    json_path = save_json_to_gcs(record)
+    parquet_uri = save_parquet_to_gcs(record)
+    load_to_bigquery(parquet_uri)
 
     return "OK", 200
 
-
-@app.route("/listening")
-def listening():
-    return "Consumer is running", 200
-
-
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8080)
-
+@app.route("/")
+def home():
+    return "Consumer running", 200
