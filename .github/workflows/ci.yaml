@@ -1,0 +1,34 @@
+name: Continuous Integration (CI)
+
+on:
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  ci-checks:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ---------- LINT (pylint) ----------
+      - name: Install Python + dependencies
+        run: |
+          python3 -m pip install --upgrade pip
+          pip install pylint flask fastavro pandas google-cloud-storage google-cloud-bigquery google-cloud-secret-manager
+
+      - name: Run pylint
+        run: |
+          pylint consumer/*.py producer/*.py --exit-zero
+
+      # ---------- EDITORCONFIG ----------
+      - name: EditorConfig check
+        uses: editorconfig-checker/action-editorconfig-checker@v2
+
+      # ---------- BUILD TEST (no push) ----------
+      - name: Build consumer image (local only)
+        run: docker build -t consumer-test ./consumer
+
+      - name: Build producer image (local only)
+        run: docker build -t producer-test ./producer

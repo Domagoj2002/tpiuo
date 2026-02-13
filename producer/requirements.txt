@@ -1,3 +1,5 @@
 flask
 google-cloud-pubsub
 requests
+fastavro
+google-cloud-secret-manager

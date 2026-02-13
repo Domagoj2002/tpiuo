@@ -1,3 +1,9 @@
 flask
 google-cloud-pubsub
 requests
+google-cloud-storage
+google-cloud-bigquery
+fastavro
+pandas
+pyarrow
+google-cloud-secret-manager
