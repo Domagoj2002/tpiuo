@@ -5,30 +5,47 @@ on:
     branches: [ main, master ]
 
 jobs:
-  ci-checks:
-    runs-on: ubuntu-latest
 
+  pylint-check:
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # ---------- LINT (pylint) ----------
       - name: Install Python + dependencies
         run: |
           python3 -m pip install --upgrade pip
           pip install pylint flask fastavro pandas google-cloud-storage google-cloud-bigquery google-cloud-secret-manager
 
       - name: Run pylint
-        run: |
-          pylint consumer/*.py producer/*.py --exit-zero
+        run: pylint consumer/*.py producer/*.py --exit-zero
 
-      # ---------- EDITORCONFIG -----------
+
+  editorconfig-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
       - name: EditorConfig check
         uses: editorconfig-checker/action-editorconfig-checker@v2
 
-      # ---------- BUILD TEST (no push) ----------
+
+  consumer-build-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
       - name: Build consumer image (local only)
         run: docker build -t consumer-test ./consumer
+
+
+  producer-build-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Build producer image (local only)
         run: docker build -t producer-test ./producer
