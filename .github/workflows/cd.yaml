@@ -16,7 +16,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Autentifikacija na GCP preko WIF-a2
+      # Autentifikacija na GCP preko WIF-a23
       - name: Authenticate to GCP
         uses: google-github-actions/auth@v1
         with:
