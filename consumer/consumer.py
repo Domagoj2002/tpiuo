@@ -21,7 +21,7 @@ storage_client = storage.Client()
 
 # BigQuery
 bq_client = bigquery.Client()
-#TABLE_ID = os.getenv("BQ_TABLE_ID")
+#TABLE_ID = os.getenv("BQ_TABLE_ID")probe
 
 
 def get_secret(secret_name):
