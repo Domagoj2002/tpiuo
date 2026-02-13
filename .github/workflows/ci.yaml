@@ -22,7 +22,7 @@ jobs:
         run: |
           pylint consumer/*.py producer/*.py --exit-zero
 
-      # ---------- EDITORCONFIG ----------
+      # ---------- EDITORCONFIG -----------
       - name: EditorConfig check
         uses: editorconfig-checker/action-editorconfig-checker@v2
 
