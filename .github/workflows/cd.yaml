@@ -16,7 +16,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # ---------- DEBUG: KOJI SA SE KORISTI ----------
+      # ---------- DEBUG: KOJI SA SE KORISTI -----------
       - name: Print SA being used
         run: echo "Using SA: ${{ secrets.SERVICE_ACCOUNT }}"
 
