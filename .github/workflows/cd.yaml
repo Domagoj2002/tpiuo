@@ -37,7 +37,7 @@ jobs:
       - name: Push producer image
         run: docker push europe-west1-docker.pkg.dev/${{ secrets.GCP_PROJECT }}/jsonplaceholder-images/producer:latest
 
-      # ---------- DEPLOY CONSUMER ----------
+      # ---------- DEPLOY CONSUMER -----------
       - name: Deploy consumer service
         run: |
           gcloud run deploy consumer \
