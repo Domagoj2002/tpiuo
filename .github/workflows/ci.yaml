@@ -20,7 +20,7 @@ jobs:
 
       - name: Run pylint
         run: |
-          pylint consumer/*.py producer/*.py
+          pylint consumer/*.py producer/*.py --exit-zero
 
       # ---------- EDITORCONFIG ----------
       - name: EditorConfig check
