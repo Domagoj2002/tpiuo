@@ -11,8 +11,6 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      - name: Print SA being used
-        run: echo "Using SA: ${{ secrets.SERVICE_ACCOUNT }}"
       - name: Authenticate to GCP
         uses: google-github-actions/auth@v1
         with:
