@@ -16,7 +16,7 @@ jobs:
       - name: Install Python + dependencies
         run: |
           python3 -m pip install --upgrade pip
-          pip install pylint
+          pip install pylint flask fastavro pandas google-cloud-storage google-cloud-bigquery google-cloud-secret-manager
 
       - name: Run pylint
         run: |
