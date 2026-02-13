@@ -19,7 +19,7 @@ jobs:
         run: echo "SERVICE_ACCOUNT=${{ secrets.SERVICE_ACCOUNT }}"
 
       - name: Print SERVICE_ACCOUNT length
-        run: echo "Length: ${#SERVICE_ACCOUNT}"
+        run: echo "Length: ${{ secrets.SERVICE_ACCOUNT | length }}"
 
       - name: Print WIF_PROVIDER secret
         run: echo "WIF_PROVIDER=${{ secrets.WIF_PROVIDER }}"
