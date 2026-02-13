@@ -23,7 +23,7 @@ jobs:
       - name: Debug WIF_PROVIDER
         run: printf "WIF_PROVIDER=%s\n" "${{ secrets.WIF_PROVIDER }}"
 
-      # DEBUG 3 — ispis OIDC URL
+      # DEBUG 3 — ispis OIDC URL opet
       - name: Debug OIDC URL
         run: printf "OIDC_URL=%s\n" "$ACTIONS_ID_TOKEN_REQUEST_URL"
 
