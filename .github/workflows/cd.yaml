@@ -1,72 +1,36 @@
 name: Continuous Deployment (CD)
-
 on:
   push:
     branches: [ main, master ]
-
 permissions:
   id-token: write
   contents: read
-
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
-      # ---------- DEBUG: KOJI SA SE KORISTI ----------
       - name: Print SA being used
         run: echo "Using SA: ${{ secrets.SERVICE_ACCOUNT }}"
-
-      # ---------- AUTH (WIF) --------------
       - name: Authenticate to GCP
         uses: google-github-actions/auth@v1
         with:
           workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
           service_account: ${{ secrets.SERVICE_ACCOUNT }}
-
       - name: Configure Docker for Artifact Registry
         run: gcloud auth configure-docker europe-west1-docker.pkg.dev
-
-      # ---------- BUILD & PUSH ----------
       - name: Build consumer image
-        run: |
-          docker build -t europe-west1-docker.pkg.dev/${{ secrets.GCP_PROJECT }}/jsonplaceholder-images/consumer:latest ./consumer
-
+        run: docker build -t europe-west1-docker.pkg.dev/${{ secrets.GCP_PROJECT }}/jsonplaceholder-images/consumer:latest ./consumer
       - name: Build producer image
-        run: |
-          docker build -t europe-west1-docker.pkg.dev/${{ secrets.GCP_PROJECT }}/jsonplaceholder-images/producer:latest ./producer
-
+        run: docker build -t europe-west1-docker.pkg.dev/${{ secrets.GCP_PROJECT }}/jsonplaceholder-images/producer:latest ./producer
       - name: Push consumer image
         run: docker push europe-west1-docker.pkg.dev/${{ secrets.GCP_PROJECT }}/jsonplaceholder-images/consumer:latest
-
       - name: Push producer image
         run: docker push europe-west1-docker.pkg.dev/${{ secrets.GCP_PROJECT }}/jsonplaceholder-images/producer:latest
-
-      # ---------- DEPLOY CONSUMER -----------
       - name: Deploy consumer service
-        run: |
-          gcloud run deploy consumer \
-            --image=europe-west1-docker.pkg.dev/${{ secrets.GCP_PROJECT }}/jsonplaceholder-images/consumer:latest \
-            --region=europe-west1 \
-            --platform=managed \
-            --allow-unauthenticated \
-            --service-account cr-deploy2-sa@student-0036540224-project.iam.gserviceaccount.com \
-            --set-env-vars GCP_PROJECT_ID=${{ secrets.GCP_PROJECT }}
-
-      # ---------- DEPLOY PRODUCER JOB ----------
+        run: gcloud run deploy consumer --image=europe-west1-docker.pkg.dev/${{ secrets.GCP_PROJECT }}/jsonplaceholder-images/consumer:latest --region=europe-west1 --platform=managed --allow-unauthenticated --service-account cr-deploy2-sa@student-0036540224-project.iam.gserviceaccount.com --set-env-vars GCP_PROJECT_ID=${{ secrets.GCP_PROJECT }}
       - name: Deploy producer job
-        run: |
-          gcloud run jobs deploy producer \
-            --image=europe-west1-docker.pkg.dev/${{ secrets.GCP_PROJECT }}/jsonplaceholder-images/producer:latest \
-            --region=europe-west1 \
-            --service-account cr-deploy2-sa@student-0036540224-project.iam.gserviceaccount.com \
-            --set-env-vars-file=producer/env.yaml \
-            --set-env-vars GCP_PROJECT_ID=${{ secrets.GCP_PROJECT }}
-
-      # ---------- RUN PRODUCER JOB ----------
+        run: gcloud run jobs deploy producer --image=europe-west1-docker.pkg.dev/${{ secrets.GCP_PROJECT }}/jsonplaceholder-images/producer:latest --region=europe-west1 --service-account cr-deploy2-sa@student-0036540224-project.iam.gserviceaccount.com --set-env-vars-file=producer/env.yaml --set-env-vars GCP_PROJECT_ID=${{ secrets.GCP_PROJECT }}
       - name: Run producer job
-        run: |
-          gcloud run jobs execute producer --region=europe-west1
+        run: gcloud run jobs execute producer --region=europe-west1
