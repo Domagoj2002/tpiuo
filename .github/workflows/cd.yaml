@@ -23,9 +23,17 @@ jobs:
           workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
           service_account: ${{ secrets.SERVICE_ACCOUNT }}
 
+      # DEBUG — provjeri koji account je aktivan
+      - name: Print active gcloud account
+        run: gcloud auth list
+
       # Docker login za Artifact Registry
       - name: Configure Docker for Artifact Registry
         run: gcloud auth configure-docker europe-west1-docker.pkg.dev
+
+      # DEBUG — provjeri Docker credential helper config
+      - name: Print docker credential helper config
+        run: cat ~/.docker/config.json
 
       # Build Docker slika
       - name: Build consumer image
@@ -34,7 +42,7 @@ jobs:
       - name: Build producer image
         run: docker build -t europe-west1-docker.pkg.dev/${{ secrets.GCP_PROJECT }}/jsonplaceholder-images/producer:latest ./producer
 
-      # Push Docker slika2
+      # Push Docker slika
       - name: Push consumer image
         run: docker push europe-west1-docker.pkg.dev/${{ secrets.GCP_PROJECT }}/jsonplaceholder-images/consumer:latest
 
