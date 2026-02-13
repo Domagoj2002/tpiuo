@@ -15,17 +15,30 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # DEBUG 1 — ispis SERVICE_ACCOUNT
-      - name: Debug SERVICE_ACCOUNT
-        run: printf "SERVICE_ACCOUNT=%s\n" "${{ secrets.SERVICE_ACCOUNT }}"
+      # DEBUG 1 — pokaži raw bytes secreta (GitHub neće maskirati whitespace)
+      - name: Debug raw SERVICE_ACCOUNT
+        run: |
+          printf "SERVICE_ACCOUNT RAW BYTES: "
+          printf "%q\n" "${{ secrets.SERVICE_ACCOUNT }}"
 
-      # DEBUG 2 — ispis WIF_PROVIDER
-      - name: Debug WIF_PROVIDER
-        run: printf "WIF_PROVIDER=%s\n" "${{ secrets.WIF_PROVIDER }}"
+      - name: Debug raw WIF_PROVIDER
+        run: |
+          printf "WIF_PROVIDER RAW BYTES: "
+          printf "%q\n" "${{ secrets.WIF_PROVIDER }}"
 
-      # DEBUG 3 — ispis OIDC URL opet
+      # DEBUG 2 — pokaži OIDC URL
       - name: Debug OIDC URL
-        run: printf "OIDC_URL=%s\n" "$ACTIONS_ID_TOKEN_REQUEST_URL"
+        run: |
+          echo "OIDC_URL=$ACTIONS_ID_TOKEN_REQUEST_URL"
+
+      # DEBUG 3 — dohvati OIDC token i pokaži claimove
+      - name: Debug OIDC token claims
+        run: |
+          sudo apt-get update >/dev/null 2>&1
+          sudo apt-get install -y jq >/dev/null 2>&1
+          TOKEN=$(curl -s -H "Authorization: Bearer $ACTIONS_ID_TOKEN" "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=gha")
+          echo "OIDC TOKEN CLAIMS:"
+          echo "$TOKEN" | jq .
 
       - name: Authenticate to GCP
         uses: google-github-actions/auth@v1
@@ -33,9 +46,15 @@ jobs:
           workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
           service_account: ${{ secrets.SERVICE_ACCOUNT }}
 
-      # DEBUG 4 — provjera tko je autentificiran
+      # DEBUG 4 — pokaži tko je autentificiran
       - name: Debug gcloud auth list
         run: gcloud auth list
+
+      # DEBUG 5 — pokaži sadržaj credentials file-a
+      - name: Debug credentials file
+        run: |
+          echo "CREDENTIALS FILE CONTENT:"
+          cat "$GOOGLE_APPLICATION_CREDENTIALS"
 
       - name: Configure Docker for Artifact Registry
         run: gcloud auth configure-docker europe-west1-docker.pkg.dev
