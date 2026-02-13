@@ -16,7 +16,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # ---------- AUTH (WIF) ------------
+      # ---------- AUTH (WIF) -------------
       - name: Authenticate to GCP
         uses: google-github-actions/auth@v1
         with:
