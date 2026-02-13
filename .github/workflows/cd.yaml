@@ -34,7 +34,7 @@ jobs:
       - name: Build producer image
         run: docker build -t europe-west1-docker.pkg.dev/${{ secrets.GCP_PROJECT }}/jsonplaceholder-images/producer:latest ./producer
 
-      # Push Docker slika
+      # Push Docker slika2
       - name: Push consumer image
         run: docker push europe-west1-docker.pkg.dev/${{ secrets.GCP_PROJECT }}/jsonplaceholder-images/consumer:latest
 
