@@ -5,8 +5,8 @@ on:
     branches: [ main, master ]
 
 permissions:
- id-token: write 
- contents: read
+  id-token: write
+  contents: read
 
 jobs:
   deploy:
@@ -15,8 +15,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        
-        # ---------- debug for SA being used --------------
+
+      # ---------- DEBUG: KOJI SA SE KORISTI ----------
       - name: Print SA being used
         run: echo "Using SA: ${{ secrets.SERVICE_ACCOUNT }}"
 
@@ -26,6 +26,7 @@ jobs:
         with:
           workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
           service_account: ${{ secrets.SERVICE_ACCOUNT }}
+
 
       - name: Configure Docker for Artifact Registry
         run: gcloud auth configure-docker europe-west1-docker.pkg.dev
