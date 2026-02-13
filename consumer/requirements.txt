@@ -6,4 +6,4 @@ google-cloud-bigquery
 fastavro
 pandas
 pyarrow
-
+google-cloud-secret-manager

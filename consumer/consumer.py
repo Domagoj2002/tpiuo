@@ -1,25 +1,39 @@
 import base64
 import json
 import io
+import os
 from flask import Flask, request
 from fastavro import parse_schema, schemaless_reader
 from google.cloud import storage, bigquery
 import pandas as pd
 from datetime import datetime
+from google.cloud import secretmanager
 
 app = Flask(__name__)
 
 # Učitaj AVRO schemu
-with open("reddit_schema.avsc", "r") as f:
+with open("schema.avsc", "r") as f:
     avro_schema = parse_schema(json.load(f))
 
 # GCS
 storage_client = storage.Client()
-BUCKET = "jsonplaceholder-messages-domagoj"
+#BUCKET = os.getenv("BUCKET_NAME")
 
 # BigQuery
 bq_client = bigquery.Client()
-TABLE_ID = "student-0036540224-project.reddit_pipeline.reddit_messages"
+#TABLE_ID = os.getenv("BQ_TABLE_ID")
+
+
+def get_secret(secret_name):
+    client = secretmanager.SecretManagerServiceClient()
+    project_id = os.getenv("GCP_PROJECT_ID")
+    name = f"projects/{project_id}/secrets/{secret_name}/versions/latest"
+    response = client.access_secret_version(request={"name": name})
+    return response.payload.data.decode("utf-8")
+
+BUCKET = get_secret("consumer-bucket-secret")
+TABLE_ID = get_secret("consumer-bqtable-secret")
+
 
 def decode_avro(avro_bytes):
     buffer = io.BytesIO(avro_bytes)
