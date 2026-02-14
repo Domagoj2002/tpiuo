@@ -65,7 +65,6 @@ jobs:
             --image=europe-west1-docker.pkg.dev/${{ secrets.GCP_PROJECT }}/jsonplaceholder-images/producer:latest \
             --region=europe-west1 \
             --service-account=cr-deploy2-sa@student-0036540224-project.iam.gserviceaccount.com \
-            --env-vars-file=producer/env.yaml \
             --set-env-vars=GCP_PROJECT_ID=${{ secrets.GCP_PROJECT }}
 
       - name: Run producer job
