@@ -84,7 +84,7 @@ jobs:
             --set-env-vars-file=producer/env.yaml \
             --set-env-vars=GCP_PROJECT_ID=${{ secrets.GCP_PROJECT }}
 
-      # 12. Execute Producer job2
+      # 12. Execute Producer job23
       - name: Run producer job
         run: |
           gcloud run jobs execute producer \
