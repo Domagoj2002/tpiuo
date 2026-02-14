@@ -16,8 +16,9 @@ def get_secret(secret_name):
 # PROJECT_ID iz Secret Managera
 PROJECT_ID = get_secret("producer-project-id-secret")
 
-# PUBSUB_TOPIC iz env varijable
-TOPIC_ID = os.getenv("PUBSUB_TOPIC")
+# PUBSUB_TOPIC iz Secret Managera
+TOPIC_ID = get_secret("producer-pubsub-topic-secret")
+
 
 publisher = pubsub_v1.PublisherClient()
 topic_path = publisher.topic_path(PROJECT_ID, TOPIC_ID)
