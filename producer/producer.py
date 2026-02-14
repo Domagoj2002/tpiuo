@@ -14,7 +14,7 @@ def get_secret(secret_name):
     return response.payload.data.decode("utf-8")
 
 # PROJECT_ID iz Secret Managera
-PROJECT_ID = get_secret("producer-project-id-secret")
+PROJECT_ID = os.getenv("GCP_PROJECT_ID")
 
 # PUBSUB_TOPIC iz Secret Managera
 TOPIC_ID = get_secret("producer-pubsub-topic-secret")
