@@ -54,7 +54,9 @@ jobs:
             --image=europe-west1-docker.pkg.dev/${{ secrets.GCP_PROJECT }}/jsonplaceholder-images/consumer:latest \
             --region=europe-west1 \
             --allow-unauthenticated \
-            --service-account=cr-deploy2-sa@student-0036540224-project.iam.gserviceaccount.com
+            --service-account=cr-deploy2-sa@student-0036540224-project.iam.gserviceaccount.com \
+            --set-env-vars=GCP_PROJECT_ID=${{ secrets.GCP_PROJECT }} \
+            --platform=managed
 
       # ✅ CLOUD RUN JOB2
       - name: Deploy producer job
@@ -62,7 +64,9 @@ jobs:
           gcloud run jobs deploy producer \
             --image=europe-west1-docker.pkg.dev/${{ secrets.GCP_PROJECT }}/jsonplaceholder-images/producer:latest \
             --region=europe-west1 \
-            --service-account=cr-deploy2-sa@student-0036540224-project.iam.gserviceaccount.com
+            --service-account=cr-deploy2-sa@student-0036540224-project.iam.gserviceaccount.com \
+            --set-env-vars-file=producer/env.yaml \
+            --set-env-vars=GCP_PROJECT_ID=${{ secrets.GCP_PROJECT }}
 
       - name: Run producer job
         run: gcloud run jobs execute producer --region=europe-west1
