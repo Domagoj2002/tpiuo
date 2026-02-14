@@ -88,7 +88,7 @@ def receive():
 
 @app.route("/")
 def home():
-    return "Consumer running", 200
+    return "Consumer is running...", 200
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
