@@ -13,12 +13,11 @@ def get_secret(secret_name):
     response = client.access_secret_version(request={"name": name})
     return response.payload.data.decode("utf-8")
 
-# PROJECT_ID iz Secret Managera
+# PROJECT_ID iz env varijable
 PROJECT_ID = os.getenv("GCP_PROJECT_ID")
 
 # PUBSUB_TOPIC iz Secret Managera
 TOPIC_ID = get_secret("producer-pubsub-topic-secret")
-
 
 publisher = pubsub_v1.PublisherClient()
 topic_path = publisher.topic_path(PROJECT_ID, TOPIC_ID)
@@ -38,15 +37,31 @@ def encode_avro(record):
     return buffer.getvalue()
 
 def publish_posts(posts):
-    for post in posts:
+    # 9 valid messages
+    for post in posts[:-1]:
         avro_bytes = encode_avro(post)
         future = publisher.publish(topic_path, avro_bytes)
-        print(f"Sent AVRO post {post['id']} to Pub/Sub")
+        print(f"Sent VALID AVRO post {post['id']}")
         future.result()
+
+    # 1 invalid message → schema violation
+    invalid = {
+        "userId": "WRONG_TYPE",   # should be int
+        "id": 999,
+        "title": 12345,           # should be string
+        "body": None              # should be string
+    }
+
+    # AVRO writer će puknuti → šaljemo raw JSON da sigurno padne schema validation
+    invalid_bytes = json.dumps(invalid).encode("utf-8")
+
+    future = publisher.publish(topic_path, invalid_bytes)
+    print("Sent INVALID message → should go to DEAD-LETTER TOPIC")
+    future.result()
 
 if __name__ == "__main__":
     posts = fetch_posts()
     publish_posts(posts)
 
-    while True:
-        time.sleep(5)
+    # Job mora završiti, ali ostavljamo mali sleep da Cloud Run Job ne pukne odmah
+    time.sleep(3)
