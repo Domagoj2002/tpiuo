@@ -57,7 +57,11 @@ def publish_posts(posts):
 
     future = publisher.publish(topic_path, invalid_bytes)
     print("Sent INVALID message → should go to DEAD-LETTER TOPIC")
-    future.result()
+    try:
+        future.result()
+    except Exception as e:
+        print("Publish failed (expected for invalid message):", e)
+
 
 if __name__ == "__main__":
     posts = fetch_posts()
