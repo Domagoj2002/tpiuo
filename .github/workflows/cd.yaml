@@ -25,7 +25,19 @@ jobs:
           workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
           service_account: ${{ secrets.SERVICE_ACCOUNT }}
 
-      # 3. Debug – provjera tko smo
+      #  DEBUG 1 — provjeri SERVICE_ACCOUNT secret
+      - name: Debug SERVICE_ACCOUNT
+        run: |
+          echo "SERVICE_ACCOUNT='${{ secrets.SERVICE_ACCOUNT }}'"
+          echo -n "${{ secrets.SERVICE_ACCOUNT }}" | wc -c
+
+      #  DEBUG 2 — provjeri WIF_PROVIDER secret
+      - name: Debug WIF_PROVIDER
+        run: |
+          echo "WIF_PROVIDER='${{ secrets.WIF_PROVIDER }}'"
+          echo -n "${{ secrets.WIF_PROVIDER }}" | wc -c
+
+      #  DEBUG 3 — provjeri aktivni gcloud account
       - name: Print active gcloud account
         run: gcloud auth list
 
@@ -84,7 +96,7 @@ jobs:
             --set-env-vars-file=producer/env.yaml \
             --set-env-vars=GCP_PROJECT_ID=${{ secrets.GCP_PROJECT }}
 
-      # 12. Execute Producer job233
+      # 12. Execute Producer job
       - name: Run producer job
         run: |
           gcloud run jobs execute producer \
