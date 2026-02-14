@@ -37,7 +37,7 @@ jobs:
           echo "WIF_PROVIDER='${{ secrets.WIF_PROVIDER }}'"
           echo -n "${{ secrets.WIF_PROVIDER }}" | wc -c
 
-      #  DEBUG 3 — provjeri aktivni gcloud account
+      #  DEBUG 3 — provjeri aktivni gcloud account2
       - name: Print active gcloud account
         run: gcloud auth list
 
