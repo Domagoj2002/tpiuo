@@ -56,7 +56,7 @@ jobs:
             --allow-unauthenticated \
             --service-account=cr-deploy2-sa@student-0036540224-project.iam.gserviceaccount.com
 
-      # ✅ CLOUD RUN JOB
+      # ✅ CLOUD RUN JOB2
       - name: Deploy producer job
         run: |
           gcloud run jobs deploy producer \
